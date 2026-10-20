@@ -273,5 +273,12 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error building Moonie");
-    app.run(|_, _| {});
+    app.run(|app, event| {
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen { .. } = event {
+            let _ = show_panel(app.clone());
+        }
+        #[cfg(not(target_os = "macos"))]
+        let _ = (app, event);
+    });
 }

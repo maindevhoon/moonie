@@ -6,7 +6,7 @@ Moonie is a calm desktop task companion for macOS and Windows. Capture a thought
 
 The local task system, AI draft review, TinyFish adapter, tray, shortcut, floating companion, and macOS packaging are implemented. The current companion uses original generated artwork with subtle CSS motion. **It is not a Live2D Cubism model.** The [custom separated art and Cubism rig](docs/live2d-production.md), Web SDK integration, Cubism Viewer validation, and native Windows smoke test remain before the complete MVP in the [project plan](docs/plan.md). This is a working desktop preview; the final animated-mascot release is pending that production work.
 
-API integrations require your own OpenRouter and TinyFish keys. They have not been exercised end to end without credentials. Keys are stored in the OS credential store through Rust; approved tasks and preferences are in SQLite. Drafts are kept in memory until approval.
+API integrations require your own OpenRouter and TinyFish keys. The configured MiniMax free-model draft flow has passed a live Rust diagnostic. TinyFish still requires a credentialed end-to-end check. Keys are stored in the OS credential store through Rust; approved tasks and preferences are in SQLite. Drafts are kept in memory until approval.
 
 ## Included workflows
 
@@ -19,7 +19,7 @@ API integrations require your own OpenRouter and TinyFish keys. They have not be
 
 1. Install Node.js 22.12+, pnpm 10+, Rust 1.99+, and [Tauri platform prerequisites](https://v2.tauri.app/start/prerequisites/).
 2. Run `cd app && pnpm install && pnpm tauri dev`.
-3. In Settings, save an OpenRouter key, load the model list, select a structured-output capable model, and optionally save a TinyFish key for webpage capture.
+3. In Settings, save an OpenRouter key, load the model list, select a JSON-capable model, and optionally save a TinyFish key for webpage capture.
 4. Manual tasks work without keys or network access.
 
 Build: `cd app && pnpm tauri build`. The desktop shortcut is Command+Shift+Space on macOS and Ctrl+Shift+Space on Windows. Closing the panel leaves the tray app and reminders running; use the tray's Quit action to stop it.
@@ -41,8 +41,14 @@ The [project plan](docs/plan.md) specifies Live2D Cubism for the final mascot; t
 
 ## Verification
 
-`pnpm build`, `pnpm format:check`, `cargo test`, and `cargo clippy --all-targets -- -D warnings` pass locally. Six Rust tests cover dependencies, next-task selection, recurrence, database migration, and reminder time zones/delivery tracking. The CI workflow builds macOS and Windows packages and uploads installers as build artifacts. Native UI, notifications, shortcut conflicts, multi-monitor behavior, and AI integrations still need platform smoke tests.
+`pnpm build`, `pnpm format:check`, `cargo test`, and `cargo clippy --all-targets -- -D warnings` pass locally. Ten offline Rust tests cover dependencies, next-task selection, recurrence, migrations, reminders, model capabilities, response validation, and provider errors. An opt-in live test validates the MiniMax free-model flow using the configured OS credential. The CI workflow builds macOS and Windows packages and uploads installers as build artifacts. Native UI, notifications, shortcut conflicts, multi-monitor behavior, and the TinyFish integration still need platform smoke tests.
 
 ## Artwork and licensing
 
 `app/public/moonie.png` was generated for this project from the supplied character reference. The Live2D Cubism SDK and proprietary Core are not included. Review [Live2D's SDK licensing](https://www.live2d.com/en/sdk/license/) before distributing a future rigged build.
+
+## Model compatibility
+
+Moonie reads the OpenRouter model catalogue before generating tasks. Models advertising `structured_outputs` use strict JSON Schema; models advertising only `response_format` use JSON-object mode with the task schema in the prompt. Rust validates both formats before showing editable drafts. The model selector includes both kinds. Requests keep the exact selected model ID, allow up to 120 seconds, and remain cancellable; no automatic paid-model fallback occurs.
+
+Optional live check: `cd app/src-tauri && cargo test live_minimax_free_drafts -- --ignored`. This reads the OpenRouter key from the OS credential store and sends a diagnostic request to `minimax/minimax-m3.1-flash:free`; credentials are never printed.
