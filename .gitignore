@@ -1,0 +1,13 @@
+.DS_Store
+.moonie-build/
+output/
+app/node_modules/
+app/dist/
+app/src-tauri/target/
+app/src-tauri/gen/
+*.log
+.env
+.env.*
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm

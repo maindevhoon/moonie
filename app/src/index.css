@@ -1,0 +1,13 @@
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #9b7ac8;
+  outline-offset: 2px;
+}
